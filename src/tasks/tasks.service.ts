@@ -77,7 +77,7 @@ export class TasksService {
     }
 
     async deleteTask(id: string): Promise<void> {
-        const res = await this.tasksRepository.delete(id);
+        const res = await this.tasksRepository.softDelete(id);
         if (res.affected === 0) {
             throw new HttpException(
                 {

@@ -1,5 +1,6 @@
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { TaskStatus } from '../task-status.enum';
+import { DeleteDateColumn } from 'typeorm';
 
 export class GetTasksFilterDto {
   @IsOptional()

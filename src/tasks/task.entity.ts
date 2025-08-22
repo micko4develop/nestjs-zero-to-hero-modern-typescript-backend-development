@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { TaskStatus } from "./task-status.enum";
 
 @Entity()
@@ -14,4 +14,7 @@ export class Task {
 
     @Column()
     status: TaskStatus;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }
