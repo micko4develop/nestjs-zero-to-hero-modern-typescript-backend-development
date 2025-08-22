@@ -20,24 +20,31 @@ export class TasksService {
     }
 
     async getTasksWithFilters(filterDto: GetTasksFilterDto): Promise<Task[]> {
-        const {status, search} = filterDto;
+        const { status, search } = filterDto;
 
-        let tasks = await this.getAllTasks();
+        const page = filterDto['page'] ?? 1;
+        const limit = filterDto['limit'] ?? 20;
+        const sort = filterDto['sort'] ?? 'id';
+        const dir = filterDto['dir'] ?? 'ASC';
 
-        if(status) {
-            tasks = tasks.filter((task) => task.status === status);
+        const qb = this.tasksRepository.createQueryBuilder('task');
+
+        if (status) {
+            qb.andWhere('task.status = :status', { status });
         }
 
-        if(search) {
-            tasks = tasks.filter((task) => {
-                if(task.title.includes(search) || task.description.includes(search)) {
-                    return true;
-                }
-                return false;
-            });
+        if (search) {
+            qb.andWhere(
+            '(task.title ILIKE :search OR task.description ILIKE :search)',
+            { search: `%${search}%` },
+            );
         }
 
-        return tasks;
+        qb.orderBy(`task.${sort}`, dir as 'ASC' | 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        return qb.getMany();
     }
 
     async getTaskById(id: string): Promise<Task> {
