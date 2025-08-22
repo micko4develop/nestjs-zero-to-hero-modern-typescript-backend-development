@@ -9,7 +9,7 @@ async function bootstrap() {
   app.use(cookieParser(process.env.COOKIE_SECRET)); 
 
   app.enableCors({
-    origin: 'http://localhost:3000', // front port with baseUrl
+    origin: 'http://localhost:3000',
     credentials: true,
   });
 
