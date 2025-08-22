@@ -32,7 +32,8 @@ export class UsersRepository {
   }
 
   async createUser(username: string, plainPassword: string) {
-    const passwordHash = await bcrypt.hash(plainPassword, 12);
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(plainPassword, salt);
     const user = this.repo.create({ username, passwordHash });
     return this.repo.save(user);
   }
