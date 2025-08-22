@@ -22,10 +22,10 @@ export class TasksService {
     async getTasksWithFilters(filterDto: GetTasksFilterDto): Promise<Task[]> {
         const { status, search } = filterDto;
 
-        const page = filterDto['page'] ?? 1;
-        const limit = filterDto['limit'] ?? 20;
-        const sort = filterDto['sort'] ?? 'id';
-        const dir = filterDto['dir'] ?? 'ASC';
+        const page = filterDto.page ?? 1;
+        const limit = filterDto.limit ?? 20;
+        const sort = filterDto.sort ?? 'id';
+        const dir = filterDto.dir ?? 'ASC';
 
         const qb = this.tasksRepository.createQueryBuilder('task');
 
