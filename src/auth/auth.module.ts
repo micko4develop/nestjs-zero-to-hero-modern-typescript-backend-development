@@ -1,3 +1,4 @@
+// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
@@ -10,16 +11,21 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtAtStrategy } from './strategies/jwt-at.strategy';
 import { JwtRtStrategy } from './strategies/jwt-rt.strategy';
+import { AtRtGuard } from './guards/at-rt.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({}), // tajne/expiry čita AuthService iz ConfigService-a
+    JwtModule.register({}),     // provides JwtService
   ],
   controllers: [AuthController],
-  providers: [UsersRepository, AuthService, JwtAtStrategy, JwtRtStrategy],
-  exports: [UsersRepository],
+  providers: [UsersRepository, AuthService, JwtAtStrategy, JwtRtStrategy, AtRtGuard],
+  exports: [
+    UsersRepository,
+    AtRtGuard,                  // so other modules can @UseGuards(AtRtGuard)
+    JwtModule,                  // <-- IMPORTANT: expose JwtService to consumers
+  ],
 })
 export class AuthModule {}

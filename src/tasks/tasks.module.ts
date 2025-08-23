@@ -1,13 +1,17 @@
+// src/tasks/tasks.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TasksController } from './tasks.controller';
-import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
+import { TasksService } from './tasks.service';
+import { TasksController } from './tasks.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task])],
+  imports: [
+    TypeOrmModule.forFeature([Task]),
+    AuthModule,                // brings AtRtGuard + re-exported JwtModule/JwtService
+  ],
   controllers: [TasksController],
   providers: [TasksService],
-  exports: [TasksService],
 })
 export class TasksModule {}

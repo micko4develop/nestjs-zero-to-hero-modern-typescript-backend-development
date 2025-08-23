@@ -11,6 +11,7 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_BASE_URL ?? 'http://localhost:3000',
     credentials: true,
+    exposedHeaders: ['x-access-token'], // frontend can read refreshed AT
   });
 
   await app.listen(process.env.PORT ?? 5555);
