@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { AtRtGuard } from './guards/at-rt.guard';
+import { ConfigService } from '@nestjs/config';
 
 class AuthCredentialsDto {
   username: string;
@@ -11,17 +12,50 @@ class AuthCredentialsDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
+
+  /**
+   * Converts JWT expiration time format (e.g., '7d', '10m', '1h') to milliseconds
+   * @param expirationTime - JWT expiration time string
+   * @returns number of milliseconds
+   */
+  private convertToMilliseconds(expirationTime: string): number {
+    const timeValue = parseInt(expirationTime.slice(0, -1));
+    const timeUnit = expirationTime.slice(-1);
+    
+    switch (timeUnit) {
+      case 's': return timeValue * 1000;
+      case 'm': return timeValue * 60 * 1000;
+      case 'h': return timeValue * 60 * 60 * 1000;
+      case 'd': return timeValue * 24 * 60 * 60 * 1000;
+      case 'w': return timeValue * 7 * 24 * 60 * 60 * 1000;
+      default:
+        throw new Error(`Unsupported time unit: ${timeUnit}`);
+    }
+  }
+
+  /**
+   * Gets the refresh token max age from configuration
+   */
+  private getRefreshTokenMaxAge(): number {
+    const rtExpiresIn = this.configService.get<string>('JWT_RT_EXPIRES_IN') || '7d';
+    return this.convertToMilliseconds(rtExpiresIn);
+  }
 
   @Post('/signup')
   async signUp(@Body() dto: AuthCredentialsDto, @Res() res: Response) {
     const tokens = await this.authService.signUp(dto);
+    const maxAge = this.getRefreshTokenMaxAge();
+    
     // postavi RT u HTTP-only cookie (preporučeno)
     res.cookie('rt', tokens.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure: false,            // u produkciji true (HTTPS)
-      maxAge: 7 * 24 * 3600_000 // 7 dana
+      maxAge: maxAge
     });
     return res.status(201).json({ accessToken: tokens.accessToken });
   }
@@ -30,11 +64,13 @@ export class AuthController {
   @HttpCode(200)
   async login(@Body() dto: AuthCredentialsDto, @Res() res: Response) {
     const tokens = await this.authService.login(dto);
+    const maxAge = this.getRefreshTokenMaxAge();
+    
     res.cookie('rt', tokens.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure: false,
-      maxAge: 7 * 24 * 3600_000
+      maxAge: maxAge
     });
     return res.json({ accessToken: tokens.accessToken });
   }
@@ -46,7 +82,14 @@ export class AuthController {
   async refresh(@Req() req: any, @Res() res: Response) {
     const { sub: userId, refreshToken } = req.user;
     const tokens = await this.authService.refresh(userId, refreshToken);
-    res.cookie('rt', tokens.refreshToken, { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 7*24*3600_000 });
+    const maxAge = this.getRefreshTokenMaxAge();
+    
+    res.cookie('rt', tokens.refreshToken, { 
+      httpOnly: true, 
+      sameSite: 'lax', 
+      secure: false, 
+      maxAge: maxAge 
+    });
     return res.json({ accessToken: tokens.accessToken });
   }
 

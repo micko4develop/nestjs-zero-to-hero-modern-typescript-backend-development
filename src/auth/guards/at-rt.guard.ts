@@ -20,6 +20,34 @@ export class AtRtGuard implements CanActivate {
     private readonly usersRepo: UsersRepository,
   ) {}
 
+  /**
+   * Converts JWT expiration time format (e.g., '7d', '10m', '1h') to milliseconds
+   * @param expirationTime - JWT expiration time string
+   * @returns number of milliseconds
+   */
+  private convertToMilliseconds(expirationTime: string): number {
+    const timeValue = parseInt(expirationTime.slice(0, -1));
+    const timeUnit = expirationTime.slice(-1);
+    
+    switch (timeUnit) {
+      case 's': return timeValue * 1000;
+      case 'm': return timeValue * 60 * 1000;
+      case 'h': return timeValue * 60 * 60 * 1000;
+      case 'd': return timeValue * 24 * 60 * 60 * 1000;
+      case 'w': return timeValue * 7 * 24 * 60 * 60 * 1000;
+      default:
+        throw new Error(`Unsupported time unit: ${timeUnit}`);
+    }
+  }
+
+  /**
+   * Gets the refresh token max age from configuration
+   */
+  private getRefreshTokenMaxAge(): number {
+    const rtExpiresIn = this.config.get<string>('JWT_RT_EXPIRES_IN') || '7d';
+    return this.convertToMilliseconds(rtExpiresIn);
+  }
+
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<Request>();
     const res = ctx.switchToHttp().getResponse<Response>();
@@ -113,11 +141,12 @@ export class AtRtGuard implements CanActivate {
       this.logger.debug(`DB updated: stored new RT hash for user=${user.id}`);
 
       // 5) Send back (cookie + header)
+      const maxAge = this.getRefreshTokenMaxAge();
       res.cookie('rt', newRT, {
         httpOnly: true,
         sameSite: 'lax',
         secure: false, // set true in production (HTTPS)
-        maxAge: 7 * 24 * 3600_000,
+        maxAge: maxAge,
       });
       res.setHeader('x-access-token', newAT);
       this.logger.debug('Set-Cookie: rt (httpOnly) and header: x-access-token');
