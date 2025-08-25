@@ -85,6 +85,21 @@ export class AuthService {
     );  
   }
 
+  async getUserProfile(userId: string): Promise<{ id: string; username: string; createdAt: Date; updatedAt: Date }> {
+    const user = await this.usersRepo.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    
+    // Return user profile without sensitive information
+    return {
+      id: user.id,
+      username: user.username,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
   private async getTokens(userId: string, username: string): Promise<JwtTokens> {
     const payload = { sub: userId, username };
 

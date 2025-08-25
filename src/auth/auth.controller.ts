@@ -1,7 +1,8 @@
-import { Body, Controller, Post, UseGuards, Req, Res, HttpCode } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, Req, Res, HttpCode } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AtRtGuard } from './guards/at-rt.guard';
 
 class AuthCredentialsDto {
   username: string;
@@ -55,5 +56,12 @@ export class AuthController {
     await this.authService.logout(body.userId);
     res.clearCookie('rt');
     return res.json({ success: true });
+  }
+
+  @Get('/profile')
+  @UseGuards(AtRtGuard)
+  async getProfile(@Req() req: any) {
+    const userProfile = await this.authService.getUserProfile(req.user.sub);
+    return userProfile;
   }
 }
