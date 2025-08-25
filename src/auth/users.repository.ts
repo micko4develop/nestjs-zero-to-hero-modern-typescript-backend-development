@@ -15,11 +15,17 @@ export class UsersRepository {
   ) {}
 
   async findById(id: string) {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ 
+      where: { id },
+      relations: [] // Explicitly exclude relations to prevent circular references
+    });
   }
 
   async findByUsername(username: string) {
-    return this.repo.findOne({ where: { username } });
+    return this.repo.findOne({ 
+      where: { username },
+      relations: [] // Explicitly exclude relations to prevent circular references
+    });
   }
 
   async existsByUsername(username: string) {

@@ -8,6 +8,7 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -18,9 +19,11 @@ export class User {
   username: string;
 
   @Column({ type: 'varchar', length: 255 })
+  @Exclude()
   passwordHash: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @Exclude()
   rtHash?: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
@@ -32,6 +35,6 @@ export class User {
   @DeleteDateColumn({ type: 'timestamptz', nullable: true })
   deletedAt?: Date;
 
-  @OneToMany((_type) => Task, (task) => task.user, { eager: true })
+  @OneToMany((_type) => Task, (task) => task.user, { eager: false })
   tasks: Task[];
 }
