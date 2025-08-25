@@ -1,5 +1,6 @@
-import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { TaskStatus } from "./task-status.enum";
+import { User } from "src/auth/user.entity";
 
 @Entity()
 export class Task {
@@ -17,4 +18,7 @@ export class Task {
 
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
+
+    @ManyToOne((_type) => User, (user) => user.tasks, { eager: false })
+    user: User;
 }

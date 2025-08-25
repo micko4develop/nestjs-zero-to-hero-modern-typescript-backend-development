@@ -1,3 +1,4 @@
+import { Task } from 'src/tasks/task.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -5,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -29,4 +31,7 @@ export class User {
 
   @DeleteDateColumn({ type: 'timestamptz', nullable: true })
   deletedAt?: Date;
+
+  @OneToMany((_type) => Task, (task) => task.user, { eager: true })
+  tasks: Task[];
 }
