@@ -17,10 +17,12 @@ import { Task } from './task.entity';
 import { UseGuards } from '@nestjs/common';
 import { AtRtGuard } from '../auth/guards/at-rt.guard';
 import { GetUser, type UserPayload } from 'src/auth/get-user.decorator';
+import { Logger } from '@nestjs/common';
 
 @UseGuards(AtRtGuard)
 @Controller('tasks')
 export class TasksController {
+  private logger = new Logger(TasksController.name);
   constructor(private taskService: TasksService) {}
 
   @Get()
@@ -28,6 +30,7 @@ export class TasksController {
     @Query() filterDto: GetTasksFilterDto,
     @GetUser() user: UserPayload
   ): Promise<Task[]> {
+    this.logger.verbose(`User ${user.username} retrieving all tasks. Filters: ${JSON.stringify(filterDto)}	`);
     if (Object.keys(filterDto).length) {
       return this.taskService.getTasksWithFilters(filterDto, user);
     } else {
@@ -48,6 +51,7 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: UserPayload,
   ): Promise<Task> {
+    this.logger.verbose(`User ${user.username} creating a new task. Data: ${JSON.stringify(createTaskDto)}`);
     return this.taskService.createTask(createTaskDto, user);
   }
 

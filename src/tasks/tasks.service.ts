@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { TaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
@@ -9,9 +9,11 @@ import { Repository } from 'typeorm';
 import { User } from 'src/auth/user.entity';
 import { UsersRepository } from 'src/auth/users.repository';
 import type { UserPayload } from 'src/auth/get-user.decorator';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class TasksService {
+    private logger = new Logger(TasksService.name);
     constructor(
         @InjectRepository(Task)
         private readonly tasksRepository: Repository<Task>,
@@ -55,11 +57,17 @@ export class TasksService {
             );
         }
 
-        qb.orderBy(`task.${sort}`, dir as 'ASC' | 'DESC')
+        try {
+            qb.orderBy(`task.${sort}`, dir as 'ASC' | 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
-        return qb.getMany();
+            return qb.getMany();  
+        } catch (error) {
+            this.logger.error(`Error fetching tasks: ${error.message}`);
+            throw new InternalServerErrorException();
+        }
+
     }
 
     async getTaskById(id: string, userPayload?: UserPayload): Promise<Task> {
