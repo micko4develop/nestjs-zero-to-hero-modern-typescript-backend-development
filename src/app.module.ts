@@ -19,16 +19,24 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: config.get<'postgres'>('DB_TYPE'),
-        host: config.get<string>('DB_HOST'),
-        port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
-        autoLoadEntities: true,
-        synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
-      }),
+      useFactory: (config: ConfigService) => {
+        const isProduction = process.env.APP_NAME === 'production';
+        return {
+          ssl: isProduction,
+          extra: {
+            ssl: isProduction ? { rejectUnauthorized: false } : null,
+          },
+          type: config.get<'postgres'>('DB_TYPE'),
+          host: config.get<string>('DB_HOST'),
+          port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
+          username: config.get<string>('DB_USERNAME'),
+          password: config.get<string>('DB_PASSWORD'),
+          database: config.get<string>('DB_NAME'),
+          autoLoadEntities: true,
+          synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
+          logging: true,
+        };
+      },
     }),
 
     AuthModule,
