@@ -26,15 +26,15 @@ export class TasksController {
   constructor(private taskService: TasksService) {}
 
   @Get()
-  getTasks(
+  async getTasks(
     @Query() filterDto: GetTasksFilterDto,
     @GetUser() user: UserPayload
   ): Promise<Task[]> {
     this.logger.verbose(`User ${user.username} retrieving all tasks. Filters: ${JSON.stringify(filterDto)}	`);
     if (Object.keys(filterDto).length) {
-      return this.taskService.getTasksWithFilters(filterDto, user);
+      return await this.taskService.getTasksWithFilters(filterDto, user);
     } else {
-      return this.taskService.getAllTasks(user);
+      return await this.taskService.getAllTasks(user);
     }
   }
 
