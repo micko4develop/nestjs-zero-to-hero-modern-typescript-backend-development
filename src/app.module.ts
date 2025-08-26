@@ -7,7 +7,10 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     // include .env global
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ 
+      envFilePath: `.env.${process.env.APP_NAME}`, 
+      isGlobal: true 
+    }),
 
     TasksModule,
 
