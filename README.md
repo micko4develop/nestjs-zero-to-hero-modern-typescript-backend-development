@@ -19,8 +19,8 @@ It was created for learning purposes while following a Udemy course.
 
 ```bash
 # clone repository
-git clone https://github.com/micko4develop/crud-nest-prisma-postgresql-nextjs-app.git
-cd crud-nest-prisma-postgresql-nextjs-app
+git clone https://github.com/micko4develop/nestjs-zero-to-hero-modern-typescript-backend-development.git
+cd nestjs-zero-to-hero-modern-typescript-backend-development
 
 # install dependencies
 npm install
